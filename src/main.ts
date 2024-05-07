@@ -9,6 +9,10 @@ async function bootstrap() {
       whitelist: true,
       forbidNonWhitelisted: true,
       stopAtFirstError: true,
+      transform: true, // Habilita la transformación automática de tipos
+      transformOptions: {
+        enableImplicitConversion: true, // Permite la conversión implícita de tipos
+      },
     }),
   );
   app.setGlobalPrefix('api/v2');
