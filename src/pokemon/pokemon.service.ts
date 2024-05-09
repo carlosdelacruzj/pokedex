@@ -11,12 +11,18 @@ import { Pokemon } from './entities/pokemon.entity';
 import { InjectModel } from '@nestjs/mongoose';
 import { NotFoundError } from 'rxjs';
 import { PaginationDTO } from 'src/common/dto/pagination.dto';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class PokemonService {
+  private defaultlimit: number;
   constructor(
-    @InjectModel(Pokemon.name) private readonly pokemonModel: Model<Pokemon>,
-  ) {}
+    @InjectModel(Pokemon.name)
+    private readonly pokemonModel: Model<Pokemon>,
+    private readonly configService: ConfigService,
+  ) {
+    this.defaultlimit = configService.get<number>('defaultlimit');
+  }
   async create(createPokemonDto: CreatePokemonDto) {
     createPokemonDto.name = createPokemonDto.name.toLocaleLowerCase();
 
@@ -29,8 +35,13 @@ export class PokemonService {
   }
 
   findAll(paginationDTO: PaginationDTO) {
-    const { limit = 10, offset = 0 } = paginationDTO;
-    return this.pokemonModel.find().limit(limit).skip(offset).sort({no:1}).select('-__v');
+    const { limit = this.defaultlimit, offset = 0 } = paginationDTO;
+    return this.pokemonModel
+      .find()
+      .limit(limit)
+      .skip(offset)
+      .sort({ no: 1 })
+      .select('-__v');
   }
 
   async findOne(term: string) {
@@ -90,7 +101,6 @@ export class PokemonService {
         `Pokemon exists in db ${JSON.stringify(error.keyValue)}`,
       );
     }
-    console.log(error);
     throw new InternalServerErrorException(
       `Can't create Pokemon - Check server logs`,
     );
